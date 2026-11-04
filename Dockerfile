@@ -21,9 +21,10 @@ COPY app.py ./
 COPY utils ./utils
 COPY templates ./templates
 COPY static ./static
+COPY models ./models
 
 # Runtime directories are mounted by docker-compose in normal deployments.
-RUN mkdir -p instance uploads models static/generated/gradcam static/generated/reports
+RUN mkdir -p instance uploads static/generated/gradcam static/generated/reports
 
 EXPOSE 5000
 

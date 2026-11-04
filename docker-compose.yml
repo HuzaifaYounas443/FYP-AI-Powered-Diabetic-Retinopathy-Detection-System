@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${DOCKER_USERNAME:-your-dockerhub-username}/retinai:latest
+    image: ${DOCKER_IMAGE:-huzaifayouans/fyp-diabetic-retinopathy-detection-system:latest}
     ports:
       - "5000:5000"
     environment:

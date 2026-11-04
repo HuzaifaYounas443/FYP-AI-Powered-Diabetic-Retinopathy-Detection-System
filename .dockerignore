@@ -14,9 +14,6 @@ data_folder
 *.ipynb
 thesis_figures
 
-# Keep model weights outside the image and mount/download them at deployment.
-models
-
 # Runtime and generated patient-related data.
 instance
 uploads

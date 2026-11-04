@@ -209,7 +209,9 @@ The project includes `Dockerfile`, `docker-compose.yml`, `.dockerignore`, and
 dependencies, while model weights and patient-related runtime data are kept
 outside the image.
 
-1. Copy the trained checkpoints into the local `models/` directory:
+1. Copy the trained checkpoints into the local `models/` directory. The
+   Dockerfile includes these files in the image so deployed containers run
+   real inference instead of demo mode:
 
    ```
    models/
@@ -220,7 +222,6 @@ outside the image.
 2. Create a `.env` file next to `docker-compose.yml`:
 
    ```dotenv
-   DOCKER_USERNAME=your-dockerhub-username
    SECRET_KEY=replace-with-a-long-random-secret
    SMTP_USER=
    SMTP_PASS=
@@ -236,20 +237,21 @@ outside the image.
 
 The Compose file mounts `models/`, `instance/`, `uploads/`, and
 `static/generated/`. This means the database, uploaded images, generated
-reports, and Grad-CAM images survive container replacement. If the model files
-are not present, the application starts in demo mode; it does not provide real
-AI predictions.
+reports, and Grad-CAM images survive container replacement. The model
+checkpoints are packaged into the Docker image for registry-based deployment.
+Rebuild and push the image whenever the checkpoints change. If the model files
+are not present during the Docker build, the application starts in demo mode;
+it does not provide real AI predictions.
 
 To publish the image to Docker Hub:
 
 ```powershell
 docker login
-docker compose build
-docker push your-dockerhub-username/retinai:latest
+docker build -t huzaifayouans/fyp-diabetic-retinopathy-detection-system:latest .
+docker push huzaifayouans/fyp-diabetic-retinopathy-detection-system:latest
 ```
 
-On the deployment server, create the same `.env` file, place or download the
-model checkpoints into `models/`, then run:
+On the deployment server, create the same `.env` file and run:
 
 ```powershell
 docker compose pull
