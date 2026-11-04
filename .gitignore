@@ -1,0 +1,20 @@
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Training datasets are large and should be distributed separately.
+data_folder/
+
+# Model checkpoints can be large and should be stored outside normal Git.
+models/
+
+# Local database, patient uploads, and generated reports/Grad-CAM images.
+instance/
+uploads/
+static/generated/
+
+# Local secrets and environment files.
+.env
+.env.*
+!.env.example

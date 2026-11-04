@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetinAI | AI-Powered Diabetic Retinopathy Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body class="landing-body">
+
+<!-- NAV -->
+<nav class="landing-nav">
+  <a class="brand" href="#">
+    <div class="brand-icon"><i class="fa-solid fa-eye"></i></div>
+    Retin<span class="accent">AI</span>
+  </a>
+  <div class="nav-actions">
+    <a href="{{ url_for('login') }}" class="btn-ghost">Sign In</a>
+    <a href="{{ url_for('signup') }}" class="btn-primary-sm">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-lines"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      AI-Powered Medical Diagnostics
+    </div>
+    <h1 class="hero-title">
+      Detect Diabetic<br>
+      <span class="title-gradient">Retinopathy</span><br>
+      with Precision AI
+    </h1>
+    <p class="hero-sub">
+      Our ensemble deep-learning system analyzes retinal images with <strong>90%+ accuracy</strong>,
+      classifying 5 severity levels and providing instant clinical recommendations.
+    </p>
+    <div class="hero-cta">
+      <a href="{{ url_for('signup') }}" class="btn-hero">
+        Start Scanning Free <i class="fa-solid fa-arrow-right"></i>
+      </a>
+      <a href="{{ url_for('login') }}" class="btn-hero-outline">
+        Sign In
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">90%+</span><span class="stat-label">Accuracy</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">5</span><span class="stat-label">DR Stages</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">2+</span><span class="stat-label">AI Models</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">&lt;5s</span><span class="stat-label">Analysis Time</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="retina-card">
+      <div class="retina-display">
+        <div class="retina-ring r1"></div>
+        <div class="retina-ring r2"></div>
+        <div class="retina-ring r3"></div>
+        <div class="retina-center">
+          <i class="fa-solid fa-eye"></i>
+        </div>
+        <div class="scan-line"></div>
+      </div>
+      <div class="retina-result">
+        <div class="result-row">
+          <span class="result-dot green"></span>
+          <span>No DR Detected</span>
+          <span class="result-conf">98.2%</span>
+        </div>
+        <div class="result-bar-wrap">
+          <div class="result-bar" style="width:98%"></div>
+        </div>
+      </div>
+      <div class="model-tags">
+        <span class="model-tag">EfficientNet-B5</span>
+        <span class="model-tag">ResNet-101</span>
+        <span class="model-tag tag-ensemble">Ensemble</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <h2 class="section-title">Everything You Need</h2>
+  <p class="section-sub">A complete diagnostic platform for modern ophthalmology practices</p>
+  <div class="features-grid">
+    <div class="feature-card" style="--delay:0s">
+      <div class="feature-icon blue"><i class="fa-solid fa-brain"></i></div>
+      <h3>Ensemble AI</h3>
+      <p>EfficientNet-B5 and ResNet-101 working together deliver higher accuracy than any single model.</p>
+    </div>
+    <div class="feature-card" style="--delay:.1s">
+      <div class="feature-icon purple"><i class="fa-solid fa-chart-pie"></i></div>
+      <h3>Grad-CAM Visualization</h3>
+      <p>Explainable AI highlights the exact retinal regions influencing each prediction.</p>
+    </div>
+    <div class="feature-card" style="--delay:.2s">
+      <div class="feature-icon teal"><i class="fa-solid fa-envelope"></i></div>
+      <h3>Instant Reports</h3>
+      <p>Automatically email detailed PDF reports directly to patients with one click.</p>
+    </div>
+    <div class="feature-card" style="--delay:.3s">
+      <div class="feature-icon orange"><i class="fa-solid fa-database"></i></div>
+      <h3>Secure Records</h3>
+      <p>All scans and patient data stored securely with SQLite, fully searchable history.</p>
+    </div>
+    <div class="feature-card" style="--delay:.4s">
+      <div class="feature-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h3>5-Stage Classification</h3>
+      <p>From No DR to Proliferative DR – each stage with specific clinical recommendations.</p>
+    </div>
+    <div class="feature-card" style="--delay:.5s">
+      <div class="feature-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+      <h3>HIPAA-Ready Design</h3>
+      <p>Built with medical data security in mind — password-protected, role-based access.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DR STAGES -->
+<section class="stages">
+  <h2 class="section-title">5 Severity Levels Detected</h2>
+  <div class="stages-row">
+    <div class="stage-pill s0"><span>0</span> No DR</div>
+    <div class="stage-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="stage-pill s1"><span>1</span> Mild</div>
+    <div class="stage-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="stage-pill s2"><span>2</span> Moderate</div>
+    <div class="stage-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="stage-pill s3"><span>3</span> Severe</div>
+    <div class="stage-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="stage-pill s4"><span>4</span> Proliferative</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="landing-footer">
+  <div class="footer-brand">
+    <div class="brand-icon small"><i class="fa-solid fa-eye"></i></div>
+    Retin<span class="accent">AI</span>
+  </div>
+  <p>University of Haripur · Department of Information Technology · Final Year Project</p>
+  <p style="margin-top:8px; color:#475569">Muhammad Huzaifa &amp; Fahad Niaz</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Diabetic Retinopathy Detection System{% endblock %}
+
+{% block content %}
+<div class="page dashboard-page">
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Welcome back, <strong>{{ session.user_name }}</strong></p>
+    </div>
+    <a href="{{ url_for('scan') }}" class="btn-primary" title="Start new scan">
+      New Scan
+    </a>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="sc-icon blue"><i class="fa-solid fa-images"></i></div>
+      <div class="sc-body">
+        <div class="sc-num">{{ stats.total or 0 }}</div>
+        <div class="sc-label">Total Scans</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon green"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="sc-body">
+        <div class="sc-num">{{ stats.no_dr or 0 }}</div>
+        <div class="sc-label">No DR Cases</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div class="sc-body">
+        <div class="sc-num">{{ stats.mild_moderate or 0 }}</div>
+        <div class="sc-label">Mild / Moderate</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon red"><i class="fa-solid fa-circle-exclamation"></i></div>
+      <div class="sc-body">
+        <div class="sc-num">{{ stats.severe or 0 }}</div>
+        <div class="sc-label">Severe / Proliferative</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT SCANS -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Recent Scans</h2>
+      <a href="{{ url_for('history') }}" class="card-action">View All</a>
+    </div>
+    {% if scans %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Patient ID</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in scans %}
+          <tr class="table-row">
+            <td>
+              <div class="patient-cell">
+                <div class="patient-avatar">{{ scan.patient_name[0].upper() }}</div>
+                <div>
+                  <div class="patient-name">{{ scan.patient_name }}</div>
+                  <div class="patient-email">{{ scan.patient_email or '—' }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="mono-text">#{{ scan.patient_id }}</span></td>
+            <td>
+              <span class="severity-badge sev-{{ scan.severity_level }}">{{ scan.severity_label }}</span>
+            </td>
+            <td>
+              <div class="conf-cell">
+                <span>{{ "%.1f"|format(scan.confidence) }}%</span>
+                <div class="mini-bar"><div class="mini-bar-fill" data-confidence="{{ scan.confidence }}"></div></div>
+              </div>
+            </td>
+            <td><span class="date-text">{{ scan.created_at[:16] }}</span></td>
+            <td>
+              <div class="action-btns">
+                <a href="{{ url_for('report', scan_id=scan.id) }}" class="action-btn" title="View Report">
+                  <i class="fa-solid fa-file-medical"></i>
+                </a>
+                <button class="action-btn delete-btn js-delete-scan" data-scan-id="{{ scan.id }}" title="Delete Scan" type="button">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h3>No scans yet</h3>
+      <p>Upload your first retinal image to get started</p>
+      <a href="{{ url_for('scan') }}" class="btn-primary">Start Scanning</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- QUICK REFERENCE: DR STAGES -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">DR Severity Reference</h2>
+    </div>
+    <div class="severity-reference">
+      {% set stages = [
+        (0, 'No DR', 'No visible signs of retinopathy. Annual follow-up recommended.', '#22c55e'),
+        (1, 'Mild DR', 'Microaneurysms only. 12-month follow-up required.', '#84cc16'),
+        (2, 'Moderate DR', 'More than microaneurysms. 6-month follow-up recommended.', '#f59e0b'),
+        (3, 'Severe DR', 'Many hemorrhages. Urgent referral needed.', '#f97316'),
+        (4, 'Proliferative DR', 'Neovascularization present. Immediate treatment required.', '#ef4444')
+      ] %}
+      {% for level, label, desc, color in stages %}
+      <div class="sev-ref-item">
+        <div class="sev-ref-badge sev-ref-{{ level }}">
+          <span class="sev-num">{{ level }}</span>
+          {{ label }}
+        </div>
+        <p class="sev-ref-desc">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.mini-bar-fill[data-confidence]').forEach((el) => {
+  const value = Number.parseFloat(el.dataset.confidence || '0');
+  const safeValue = Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
+  el.style.width = `${safeValue}%`;
+});
+
+document.querySelectorAll('.js-delete-scan[data-scan-id]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const id = Number.parseInt(button.dataset.scanId || '0', 10);
+    if (id > 0) {
+      deleteScan(id);
+    }
+  });
+});
+</script>
+{% endblock %}

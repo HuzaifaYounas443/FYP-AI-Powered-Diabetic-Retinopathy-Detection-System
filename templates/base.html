@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Diabetic Retinopathy Detection System{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- TOP NAVIGATION -->
+<nav class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a href="{{ url_for('dashboard') }}" class="topbar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-eye"></i></div>
+      <span class="brand-name">Diabetic Retinopathy Detection System</span>
+    </a>
+
+    <div class="topbar-links">
+      <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+      </a>
+      <a href="{{ url_for('scan') }}" class="nav-link {% if request.endpoint == 'scan' %}active{% endif %}">
+        <i class="fa-solid fa-camera-retro"></i> New Scan
+      </a>
+      <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">
+        <i class="fa-solid fa-clock-rotate-left"></i> History
+      </a>
+    </div>
+
+    <div class="topbar-user">
+      <div class="user-pill">
+        <div class="user-avatar">{{ session.user_name[0].upper() if session.user_name else 'D' }}</div>
+        <span class="user-name">{{ session.user_name or 'Doctor' }}</span>
+        <i class="fa-solid fa-chevron-down chevron"></i>
+      </div>
+      <div class="user-dropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-avatar">{{ session.user_name[0].upper() if session.user_name else 'D' }}</div>
+          <div>
+            <div class="dropdown-name">{{ session.user_name or 'Doctor' }}</div>
+            <div class="dropdown-email">{{ session.user_email or '' }}</div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a href="{{ url_for('logout') }}" class="dropdown-item danger">
+          <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE CONTENT -->
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

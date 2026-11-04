@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Report #{{ scan.id }}{% endblock %}
+
+{% block content %}
+<div class="page report-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Diagnostic Report</h1>
+      <p class="page-sub">Scan #{{ scan.id }} &middot; {{ scan.created_at[:16] }}</p>
+    </div>
+    <div class="report-actions">
+      <button class="btn-secondary" id="printBtn" type="button">
+        <i class="fa-solid fa-print"></i> Print
+      </button>
+      {% if scan.patient_email %}
+      <button class="btn-primary" id="emailBtn" data-scan-id="{{ scan.id }}" type="button">
+        <i class="fa-solid fa-paper-plane"></i> Email Patient
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="report-grid">
+    <!-- PATIENT CARD -->
+    <div class="card report-patient">
+      <div class="card-header"><h2 class="card-title">Patient Information</h2></div>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-value">{{ scan.patient_name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Patient ID</span>
+          <span class="info-value mono-text">#{{ scan.patient_id }}</span>
+        </div>
+        {% if scan.patient_age %}
+        <div class="info-row">
+          <span class="info-label">Age</span>
+          <span class="info-value">{{ scan.patient_age }} years</span>
+        </div>
+        {% endif %}
+        {% if scan.patient_email %}
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value">{{ scan.patient_email }}</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+          <span class="info-label">Scan Date</span>
+          <span class="info-value">{{ scan.created_at[:16] }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Physician</span>
+          <span class="info-value">{{ session.user_name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT CARD -->
+    <div class="card report-result">
+      <div class="card-header"><h2 class="card-title">Diagnosis</h2></div>
+      <div class="report-diagnosis">
+        <div class="rd-badge sev-{{ scan.severity_level }}">
+          <span class="rd-level">Stage {{ scan.severity_level }}</span>
+          <span class="rd-label">{{ scan.severity_label }}</span>
+        </div>
+        <div class="rd-confidence">
+          <div class="rdc-num">{{ "%.1f"|format(scan.confidence) }}%</div>
+          <div class="rdc-label">Ensemble Confidence</div>
+        </div>
+      </div>
+
+      {% if scan.model_predictions %}
+      <div class="model-breakdown">
+        <h4>Model Predictions</h4>
+        <div class="mb-grid">
+          {% for name, pred in scan.model_predictions.items() %}
+          <div class="mb-card">
+            <div class="mb-model">{{ name.replace('_', '-').title() }}</div>
+            <div class="mb-result sev-{{ pred.level }}">{{ pred.label }}</div>
+            <div class="mb-conf">{{ "%.1f"|format(pred.confidence * 100) }}% confident</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- IMAGE CARD -->
+    <div class="card report-image">
+      <div class="card-header"><h2 class="card-title">Retinal Image</h2></div>
+      <div class="image-display">
+        <img src="{{ url_for('static', filename='../' + 'uploads/' + scan.image_path) }}"
+             data-fallback-src="{{ url_for('static', filename='images/placeholder_eye.svg') }}"
+             alt="Retinal scan" class="report-img">
+      </div>
+    </div>
+
+    <!-- GRAD-CAM CARD -->
+    <div class="card report-gradcam">
+      <div class="card-header"><h2 class="card-title">Grad-CAM Visualization</h2></div>
+      {% if scan.gradcam_path %}
+      <div class="gradcam-report">
+        <img src="{{ url_for('static', filename=scan.gradcam_path) }}" alt="Grad-CAM visualization" class="report-gradcam-img">
+        <p class="gradcam-note">The highlighted regions show where the model focused while predicting {{ scan.severity_label }}.</p>
+      </div>
+      {% else %}
+      <div class="empty-state empty-state-padded">
+        <h3>Grad-CAM not available</h3>
+        <p>This scan was processed without a saved explanation image.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="card report-rec">
+      <div class="card-header">
+        <h2 class="card-title">Clinical Recommendations</h2>
+      </div>
+      <div class="rec-content">
+        <div class="rec-severity-indicator sev-{{ scan.severity_level }}">
+          {% set urgency = ['Routine', 'Monitor', 'Referral', 'Urgent', 'Emergency'] %}
+          {{ urgency[scan.severity_level] }} Action Required
+        </div>
+        <p class="rec-text">{{ scan.recommendations }}</p>
+        <div class="rec-disclaimer">
+          This AI-generated report is intended to assist clinical decision-making and is not a substitute for professional medical judgment.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="emailToast" class="toast hidden"></div>
+
+<script>
+async function sendEmail(scanId) {
+  const btn = document.getElementById('emailBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending…';
+  try {
+    const res = await fetch(`/api/send-report/${scanId}`, { method: 'POST' });
+    const data = await res.json();
+    const toast = document.getElementById('emailToast');
+    if (data.success) {
+      toast.textContent = '✓ Report sent to patient successfully';
+      toast.className = 'toast toast-success';
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Sent';
+    } else {
+      toast.textContent = '✗ ' + (data.error || 'Failed to send email');
+      toast.className = 'toast toast-error';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Email Patient';
+    }
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 4000);
+  } catch (e) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Email Patient';
+  }
+}
+
+document.getElementById('printBtn')?.addEventListener('click', () => {
+  window.print();
+});
+
+document.getElementById('emailBtn')?.addEventListener('click', function() {
+  const scanId = Number.parseInt(this.dataset.scanId || '0', 10);
+  if (scanId > 0) {
+    sendEmail(scanId);
+  }
+});
+
+document.querySelectorAll('img[data-fallback-src]').forEach((img) => {
+  img.addEventListener('error', () => {
+    if (img.dataset.fallbackApplied === '1') {
+      return;
+    }
+    img.dataset.fallbackApplied = '1';
+    img.src = img.dataset.fallbackSrc || '';
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+services:
+  retinai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME:-your-dockerhub-username}/retinai:latest
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in the environment or .env file}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-120}
+    volumes:
+      - ./models:/app/models:ro
+      - ./instance:/app/instance
+      - ./uploads:/app/uploads
+      - ./static/generated:/app/static/generated
+    restart: unless-stopped

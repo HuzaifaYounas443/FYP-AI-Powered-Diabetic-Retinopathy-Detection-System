@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Scan History{% endblock %}
+
+{% block content %}
+<div class="page history-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Scan History</h1>
+      <p class="page-sub">{{ scans|length }} total scans</p>
+    </div>
+    <div class="history-search-bar">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Search patient…" class="search-input">
+      </div>
+      <a href="{{ url_for('scan') }}" class="btn-primary">New Scan</a>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if scans %}
+    <div class="table-wrap">
+      <table class="data-table" id="historyTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Patient</th>
+            <th>Patient ID</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in scans %}
+          <tr class="table-row searchable" data-patient="{{ scan.patient_name.lower() }}">
+            <td><span class="mono-text text-muted">{{ scan.id }}</span></td>
+            <td>
+              <div class="patient-cell">
+                <div class="patient-avatar">{{ scan.patient_name[0].upper() }}</div>
+                <div>
+                  <div class="patient-name">{{ scan.patient_name }}</div>
+                  <div class="patient-email">{{ scan.patient_email or '—' }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="mono-text">#{{ scan.patient_id }}</span></td>
+            <td><span class="severity-badge sev-{{ scan.severity_level }}">{{ scan.severity_label }}</span></td>
+            <td>
+              <div class="conf-cell">
+                <span>{{ "%.1f"|format(scan.confidence) }}%</span>
+                <div class="mini-bar"><div class="mini-bar-fill" data-confidence="{{ scan.confidence }}"></div></div>
+              </div>
+            </td>
+            <td><span class="date-text">{{ scan.created_at[:16] }}</span></td>
+            <td>
+              <div class="action-btns">
+                <a href="{{ url_for('report', scan_id=scan.id) }}" class="action-btn" title="View Report">
+                  <i class="fa-solid fa-file-medical"></i>
+                </a>
+                {% if scan.patient_email %}
+                <button class="action-btn js-quick-email" title="Email Report" data-scan-id="{{ scan.id }}" type="button">
+                  <i class="fa-solid fa-envelope"></i>
+                </button>
+                {% endif %}
+                <button class="action-btn delete-btn js-delete-scan" data-scan-id="{{ scan.id }}" title="Delete Scan" type="button">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h3>No scan history</h3>
+      <p>Your completed scans will appear here</p>
+      <a href="{{ url_for('scan') }}" class="btn-primary">Start Scanning</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div id="emailToast" class="toast hidden"></div>
+
+<script>
+// Search filter
+document.getElementById('searchInput')?.addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.searchable').forEach(row => {
+    row.style.display = row.dataset.patient.includes(q) ? '' : 'none';
+  });
+});
+
+async function quickEmail(scanId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  try {
+    const res = await fetch(`/api/send-report/${scanId}`, { method: 'POST' });
+    const data = await res.json();
+    const toast = document.getElementById('emailToast');
+    toast.textContent = data.success ? '✓ Report emailed to patient' : '✗ ' + (data.error || 'Failed');
+    toast.className = 'toast ' + (data.success ? 'toast-success' : 'toast-error');
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+    btn.innerHTML = '<i class="fa-solid fa-envelope"></i>';
+    btn.disabled = false;
+  } catch (e) {
+    btn.innerHTML = '<i class="fa-solid fa-envelope"></i>';
+    btn.disabled = false;
+  }
+}
+
+document.querySelectorAll('.mini-bar-fill[data-confidence]').forEach((el) => {
+  const value = Number.parseFloat(el.dataset.confidence || '0');
+  const safeValue = Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
+  el.style.width = `${safeValue}%`;
+});
+
+document.querySelectorAll('.js-quick-email[data-scan-id]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const id = Number.parseInt(button.dataset.scanId || '0', 10);
+    if (id > 0) {
+      quickEmail(id, button);
+    }
+  });
+});
+
+document.querySelectorAll('.js-delete-scan[data-scan-id]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const id = Number.parseInt(button.dataset.scanId || '0', 10);
+    if (id > 0) {
+      deleteScan(id);
+    }
+  });
+});
+</script>
+{% endblock %}

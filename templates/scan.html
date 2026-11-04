@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}New Scan{% endblock %}
+
+{% block content %}
+<div class="page scan-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">New Retinal Scan</h1>
+      <p class="page-sub">Upload a fundus image for AI-powered DR analysis</p>
+    </div>
+  </div>
+
+  <div class="scan-layout">
+    <!-- UPLOAD PANEL -->
+    <div class="card upload-card" id="uploadPanel">
+      <div class="card-header">
+        <h2 class="card-title">Patient Information</h2>
+      </div>
+      <form id="scanForm" class="scan-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Patient Name <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="text" name="patient_name" placeholder="Full name" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Patient ID</label>
+            <div class="input-wrap">
+              <input type="text" name="patient_id" placeholder="Auto-generated if blank">
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email (for report)</label>
+            <div class="input-wrap">
+              <input type="email" name="patient_email" placeholder="patient@email.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <div class="input-wrap">
+              <input type="number" name="patient_age" placeholder="Years" min="1" max="120">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Gender</label>
+            <div class="input-wrap">
+              <select name="patient_gender">
+                <option value="">Prefer not to say</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <div class="input-wrap">
+              <input type="tel" name="patient_phone" placeholder="+92 300 0000000">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Diabetes Duration</label>
+            <div class="input-wrap">
+              <input type="text" name="diabetes_duration" placeholder="e.g., 5 years">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Eye Side</label>
+            <div class="input-wrap">
+              <select name="eye_side">
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Medical History / Notes</label>
+          <div class="input-wrap">
+            <textarea name="medical_history" rows="3" placeholder="Relevant medical history, medications, notes"></textarea>
+          </div>
+        </div>
+
+        <!-- DROP ZONE -->
+        <div class="form-group">
+          <label>Retinal Image <span class="req">*</span></label>
+          <div class="drop-zone" id="dropZone">
+            <input type="file" name="image" id="imageInput" accept=".png,.jpg,.jpeg,.tiff,.bmp" hidden required>
+            <div class="dz-content" id="dzContent">
+              <div class="dz-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+              <div class="dz-title">Drop fundus image here</div>
+              <div class="dz-sub">or <span class="dz-link">browse files</span></div>
+              <div class="dz-formats">PNG · JPG · JPEG · TIFF · BMP</div>
+            </div>
+            <div class="dz-preview hidden" id="dzPreview">
+              <img id="previewImg" src="" alt="Preview">
+              <div class="dz-preview-info">
+                <span id="previewName">—</span>
+                <button type="button" class="dz-remove" id="dzRemove"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-analyze" id="analyzeBtn">
+          <i class="fa-solid fa-microscope"></i>
+          <span id="analyzeBtnText">Analyze with AI</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- RESULTS PANEL (hidden until analysis) -->
+    <div class="card results-card hidden" id="resultsPanel">
+      <div class="card-header">
+        <h2 class="card-title">Analysis Results</h2>
+        <span class="badge-ensemble">Ensemble AI</span>
+      </div>
+
+      <!-- MAIN RESULT -->
+      <div class="result-main" id="resultMain">
+        <div class="result-circle" id="resultCircle">
+          <div class="rc-inner">
+            <div class="rc-level" id="rcLevel">—</div>
+            <div class="rc-label" id="rcLabel">Analyzing…</div>
+          </div>
+        </div>
+        <div class="result-meta">
+          <div class="rm-confidence" id="rmConf">—</div>
+          <div class="rm-confLabel">Confidence Score</div>
+          <div class="rm-status" id="rmStatus"></div>
+        </div>
+      </div>
+
+      <!-- PROBABILITY BARS -->
+      <div class="prob-section">
+        <h3 class="prob-title">Class Probabilities</h3>
+        <div id="probBars" class="prob-bars"></div>
+      </div>
+
+      <!-- MODEL BREAKDOWN -->
+      <div class="model-section">
+        <h3 class="model-title">Model Predictions</h3>
+        <div id="modelCards" class="model-cards"></div>
+      </div>
+
+      <!-- GRAD-CAM -->
+      <div class="gradcam-section hidden" id="gradcamSection">
+        <h3 class="gradcam-title"><i class="fa-solid fa-eye"></i> Grad-CAM Visualization</h3>
+        <div class="gradcam-card">
+          <img id="gradcamImg" src="" alt="Grad-CAM visualization" class="gradcam-img">
+          <div class="gradcam-caption" id="gradcamCaption">—</div>
+        </div>
+      </div>
+
+      <!-- RECOMMENDATIONS -->
+      <div class="rec-section">
+        <h3 class="rec-title">Clinical Recommendation</h3>
+        <div class="rec-box" id="recBox">—</div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="result-actions" id="resultActions">
+        <a href="#" class="btn-report" id="viewReportBtn"><i class="fa-solid fa-file-medical"></i> View Full Report</a>
+        <button class="btn-send-email hidden" id="sendEmailBtn">
+          <i class="fa-solid fa-paper-plane"></i> Send to Patient
+        </button>
+        <button class="btn-new-scan" onclick="resetScan()">
+          <i class="fa-solid fa-rotate-left"></i> New Scan
+        </button>
+      </div>
+
+      <div class="email-status hidden" id="emailStatus"></div>
+    </div>
+
+    <!-- LOADING PANEL -->
+    <div class="card loading-card hidden" id="loadingPanel">
+      <div class="loading-content">
+        <div class="loading-orb">
+          <div class="lo-ring"></div>
+          <div class="lo-ring r2"></div>
+          <i class="fa-solid fa-eye lo-icon"></i>
+        </div>
+        <h3 class="loading-title">Analyzing Retinal Image</h3>
+        <div class="loading-steps" id="loadingSteps">
+          <div class="ls-step active" id="ls1"><i class="fa-solid fa-spinner fa-spin"></i> Preprocessing image…</div>
+          <div class="ls-step" id="ls2"><i class="fa-solid fa-circle"></i> Running EfficientNet-B5…</div>
+          <div class="ls-step" id="ls3"><i class="fa-solid fa-circle"></i> Running ResNet-101…</div>
+          <div class="ls-step" id="ls4"><i class="fa-solid fa-circle"></i> Ensemble voting…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/scan.js') }}"></script>
+{% endblock %}
